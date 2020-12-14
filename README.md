@@ -10,7 +10,7 @@ I will do my best ,help you out or try to modify the code,let them continue work
 
 # work with python3
 
-# work on linux , I haven't tried it on Windows
+# workd on linux , I haven't tried it on Windows
 
 # link
 some link you may need.
