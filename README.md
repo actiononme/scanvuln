@@ -9,6 +9,8 @@ I not responsibility anyone to use this program or you can call software,break a
 if this program have any problem,you can submit issues or pull requests on this project repositories.
 I will do my best ,help you out or try to modify the code,let them continue worked
 
+# work on python3
+
 # link
 some link you may need.
 
