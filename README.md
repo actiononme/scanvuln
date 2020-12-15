@@ -27,7 +27,10 @@ https://github.com/c0ny1/vulstudy
 that's it
 
 # Functionality 
-BruteForce with token\n
-File include Got A shell\n
-File upload Got A shell\n
+BruteForce with token
+
+File include Got A shell
+
+File upload Got A shell
+
 other more
