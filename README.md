@@ -27,10 +27,10 @@ https://github.com/c0ny1/vulstudy
 that's it
 
 # Functionality 
-BruteForce with token
+BruteForce with token.
 
-File include Got A shell
+File include Got A shell.
 
-File upload Got A shell
+File upload Got A shell.
 
-other more
+other more.
