@@ -8,6 +8,13 @@ I not responsibility anyone to use this program or you can call software,break a
 if this program have any problem,you can submit issues or pull requests on this project repositories.
 I will do my best ,help you out or try to modify the code,let them continue worked
 
+# need install
+on ubuntu
+apt install phantomjs
+---------------------
+on archlinux pacman -S phantomjs
+--------------------------------
+
 # work with python3
 
 # workd on linux , I haven't tried it on Windows
