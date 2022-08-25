@@ -10,15 +10,19 @@ I will do my best ,help you out or try to modify the code,let them continue work
 
 # need install
 1.Purge old phantomjs
+
 apt purge phantomjs
 
 2.Wget the latest phantomjs (as per http://phantomjs.org/download.html)
+
 wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
 
 3.Untar it
+
 tar xvjf phantomjs-2.1.1-linux-x86_64.tar.bz2
 
 4.Moved the phantomjs executable to /usr/bin/ (may need sudo)
+
 cp phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/
 
 # work with python3
