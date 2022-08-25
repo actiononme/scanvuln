@@ -1,5 +1,5 @@
 # scanvuln
-exploit with dvwa vulnerability environment,may work on others, like file include
+exploit with dvwa vulnerability environment
 
 # disclaimer
 I not responsibility anyone to use this program or you can call software,break against law in any country,this programming software only for learning purpose and only for security testing
