@@ -142,7 +142,7 @@ def get_database(url,cookies):
     for num in range(len(pre4)):
       s5 = re.search("First name: \w{0,20}",str(pre4[num]))
       if s5 is None:
-        pass
+        continue
       print("\033[1;32m Table\033[0m "+tablelist[1],"\033[1;32m Column\033[0m "+columnlist[count],"\033[1;32m Data\033[0m "+s5.group(0).split(" ")[-1])
 
     count += 1
