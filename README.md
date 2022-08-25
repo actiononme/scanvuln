@@ -17,7 +17,7 @@ on archlinux pacman -S phantomjs
 
 # work with python3
 
-![image](https://github.com/actiononme/scanvuln/blob/main/2022-08-25-094448_1794x497_scrot.png)
+![image]([https://github.com/actiononme/scanvuln/blob/main/2022-08-25-094448_1794x497_scrot.png](https://raw.githubusercontent.com/actiononme/scanvuln/main/img/2022-08-25-094448_1794x497_scrot.png))
 
 # workd on linux , I haven't tried it on Windows
 
