@@ -32,18 +32,11 @@ cp phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/
 # workd on linux , I haven't tried it on Windows
 
 # link
-some link you may need.
+link you may need.
 
-# file upload options before working with ths
 docker environment of the dvwa.
 https://hub.docker.com/r/vulnerables/web-dvwa
-in my case doesn't  work with file include ,so i change my environment after file include
 
-# file include options after working with thes
-other repositories my also worked,you can try
-https://github.com/c0ny1/vulstudy
-
-that's it
 
 # Functionality 
 BruteForce with token.
