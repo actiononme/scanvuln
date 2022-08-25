@@ -2067,7 +2067,7 @@ class Brute(object):
     if self.cookies['security'] == 'high':
       rep = requests.get(self.url+self.Token(),cookies=self.cookies)
     else:
-      rep = requests.get(force,cookies=self.cookies)
+      rep = requests.get(self.url,cookies=self.cookies)
     self.check(rep.text)
 
 
